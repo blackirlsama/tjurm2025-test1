@@ -1,4 +1,10 @@
 #include "tests.h"
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include<iostream>
+#include <cstring>
+using namespace std;
 
 // 练习1，实现库函数strlen
 int my_strlen(char *str) {
@@ -7,7 +13,13 @@ int my_strlen(char *str) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    int i=0;
+    while(*str != '\0')
+    {
+        str++;
+        i++;
+    }
+    return i;
 }
 
 
@@ -19,6 +31,21 @@ void my_strcat(char *str_1, char *str_2) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    // 查找str_1的结束位置
+    char *end_of_str_1 = str_1;
+    while (*end_of_str_1 != '\0') {
+        end_of_str_1++;
+    }
+
+    // 从str_1的结束位置开始复制str_2
+    while (*str_2 != '\0') {
+        *end_of_str_1 = *str_2;
+        end_of_str_1++;
+        str_2++;
+    }
+
+    // 添加字符串结束符'\0'
+    *end_of_str_1 = '\0';
 }
 
 
@@ -31,7 +58,32 @@ char* my_strstr(char *s, char *p) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    if (*p == '\0') {
+        return s;
+    }
+
+    // 如果主字符串 s 是空字符串，返回 NULL
+    if (*s == '\0') {
+        return NULL;
+    }
+
+    int len_s = strlen(s); // 主字符串 s 的长度
+    int len_p = strlen(p); // 子字符串 p 的长度
+
+    // 遍历主字符串 s
+    for (int i = 0; i <= len_s - len_p; ++i) {
+        int j = 0;
+        // 对于每个起始位置，检查是否存在子字符串 p
+        while (j < len_p && s[i + j] == p[j]) {
+            ++j;
+        }
+        // 如果找到了匹配的子字符串，返回其在 s 中的指针
+        if (j == len_p) {
+            return s + i;
+        }
+    }
+    // 如果没有找到匹配的子字符串，返回 NULL
+    return NULL;
 }
 
 
@@ -97,10 +149,22 @@ void rgb2gray(float *in, float *out, int h, int w) {
 
     // IMPLEMENT YOUR CODE HERE
     // ...
+    int i,j=0;
+    for(i=0;i<h;i++)
+    {
+        
+        for (j = 0; j < w; j++) {  
+            float B = *(in + 3 * (i * w + j));      
+            float G = *(in + 3 * (i * w + j) + 1); 
+            float R = *(in + 3 * (i * w + j) + 2); 
+            float v=0.1140 * B  + 0.5870 * G + 0.2989 * R;
+            *(out + i * w + j) = v;
+        }
+    }
 }
 
 // 练习5，实现图像处理算法 resize：缩小或放大图像
-void resize(float *in, float *out, int h, int w, int c, float scale) {
+
     /**
      * 图像处理知识：
      *  1.单线性插值法
@@ -118,7 +182,7 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
      *
      *      则满足下面的条件：
      *                    x2 - x          x - x1
-     *          v = v1 * ———————— + v2 * ————————
+     *          v = v2 * ———————— + v1 * ————————
      *                    x2 - x1         x2 - x1
      *      也就是说，v的值是 点1 和 点2 的值的加权平均值，权重与到两点的距离相关
      *      (公式中的 x也可以是 y，因为是在一条直线上)。
@@ -161,7 +225,7 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
      *                    y2 - y1         y2 - y1
      *
      *      2.3 化简：
-     *          记 Dx = x2 - x1, Dy = y2 - y1, dx = x - x1, dy = y - y1，
+     *          记 Dx = x2 - x1, Dy = y2 - y1, dx =x  - x1, dy = y - y1，
      *
      *                     (Dx - dx)(Dy - dy)         dx(Dy - dy)
      *          Q = P1 * ———————————————————— + P2 * ————————————— +
@@ -196,10 +260,63 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
      *        所以需要对其进行边界检查
      */
 
-    int new_h = h * scale, new_w = w * scale;
+     
     // IMPLEMENT YOUR CODE HERE
-
+    // 获取像素值的函数
+float get_pixel(float *data, int height, int width, int channels, int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return 0.0f; // 如果坐标超出范围，则返回0
+    }
+    int index = (y * width + x) * channels;
+    float pixel_value = 0.0f;
+    for (int c = 0; c < channels; ++c) {
+        pixel_value += data[index + c];
+    }
+    return pixel_value / channels;
 }
+
+// 设置像素值的函数
+void set_pixel(float *data, int height, int width, int channels, int x, int y, float value) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return; // 如果坐标超出范围，则不设置
+    }
+    int index = (y * width + x) * channels;
+    for (int c = 0; c < channels; ++c) {
+        data[index + c] = value;
+    }
+}
+
+void resize(float *in, float *out, int h, int w, int c, float scale) {
+    int new_h = static_cast<int>(h * scale);
+    int new_w = static_cast<int>(w * scale);
+
+    for (int i = 0; i < new_h; ++i) {
+        for (int j = 0; j < new_w; ++j) {
+            float x0 = i / scale;
+            float y0 = j / scale;
+
+            int x1 = static_cast<int>(std::floor(x0));
+            int y1 = static_cast<int>(std::floor(y0));
+            int x2 = std::min(x1 + 1, h - 1);
+            int y2 = std::min(y1 + 1, w - 1);
+
+            float dx = x0 - x1;
+            float dy = y0 - y1;
+
+            float p1 = get_pixel(in, h, w, c, x1, y1);
+            float p2 = get_pixel(in, h, w, c, x2, y1);
+            float p3 = get_pixel(in, h, w, c, x1, y2);
+            float p4 = get_pixel(in, h, w, c, x2, y2);
+
+            float Q1 = p1 * (1 - dx) + p2 * dx;
+            float Q2 = p3 * (1 - dx) + p4 * dx;
+            float Q = Q1 * (1 - dy) + Q2 * dy;
+
+            set_pixel(out, new_h, new_w, c, i, j, Q);
+        }
+    }
+}
+
 
 
 // 练习6，实现图像处理算法：直方图均衡化
@@ -220,5 +337,32 @@ void hist_eq(float *in, int h, int w) {
      * (3) 使用数组来实现灰度级 => 灰度级的映射
      */
 
-    // IMPLEMENT YOUR CODE HERE
-}
+    // IMPLEMENT YOUR CODE HERE  
+    int num_pixels = h * w;  
+    vector<int> histogram(256, 0);   
+    vector<float> cdf(256, 0.0f);     
+    float cdf_min = 0.0f;                
+    for (int i = 0; i < num_pixels; ++i) 
+    {  
+        int gray_level = static_cast<int>(in[i] * 255);  
+        histogram[gray_level]++;  
+    }  
+    float total_pixels = static_cast<float>(num_pixels);  
+    for (int i = 0; i < 256; ++i) 
+    {  
+        histogram[i] = histogram[i] / total_pixels;  
+    }  
+    cdf[0] = histogram[0];  
+    for (int i = 1; i < 256; ++i)
+     {  
+        cdf[i] = cdf[i - 1] + histogram[i];  
+    }  
+    auto cdf_min_iter = std::min_element(cdf.begin(), cdf.end());
+cdf_min = *cdf_min_iter;  
+    for (int i = 0; i < num_pixels; ++i)
+     {  
+        int gray_level = static_cast<int>(in[i] * 255);   
+        float mapped_value = 255.0f * (cdf[gray_level] - cdf_min) / (1.0f - cdf_min);    
+        in[i] = static_cast<float>(round(mapped_value) / 255.0f);  
+    }  
+} 

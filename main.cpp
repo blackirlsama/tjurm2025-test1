@@ -4,8 +4,6 @@
 #include <cstring>
 
 
-
-
 void test_rgb2gray() {
     std::cout << "开始测试函数 << rgb2gray >> ..." << std::endl;
     char *path = "../images/rgb2gray/input.jpg";
@@ -158,11 +156,11 @@ void test_resize() {
 int main() {
     std::cout << "开始测试函数 << my_strlen >> ..." << std::endl;
     test_strlen();
-    std::cout << "开始测试函数 << my_strcat >> ..." << std::endl;
+    std::cout << "开始测试函数 << my_strcpy >> ..." << std::endl;
     test_strcat();
     std::cout << "开始测试函数 << my_strstr >> ..." << std::endl;
     test_strstr();
-    std::cout << "开始测试函数 << rgb2gray >> ..." << std::endl;
+    std::cout << "开始测试函数 << hist_eq >> ..." << std::endl;
     test_rgb2gray();
     std::cout << "开始测试函数 << resize >> ..." << std::endl;
     test_resize();
